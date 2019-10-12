@@ -2,22 +2,22 @@
   <div class="contentBox">
     <date-time @search="searchConfirm" :defaultDate="defaultDate"></date-time>
     <div class="echartsBox">
-      <Row :gutter="32">
+      <Row :gutter="8">
         <Col span="10">
           <div class="leftEcharts">
-            <common-echart :option="funnelOption" height="720px"></common-echart>
+            <common-echart :option="funnelOption" height="606px"></common-echart>
             <Alert style="margin-top: 20px;">（注：可通过点击下方文字来调节对应层级的显示与隐藏）</Alert>
           </div>
         </Col>
         <Col span="14">
           <div class="rightBox">
-            <Row :gutter="22">
+            <Row :gutter="8">
               <Col span="6">
                 <div class="topBox">
                   <div class="hrBox"></div>
                   <Card style="width:100%;height: 100%" :shadow="true">
                     <div style="text-align:center">
-                      <span style="font-size: 50px;color: #666666;">{{ pageView ? pageView : 0 }}</span>
+                      <span style="font-size: 30px;color: #333333;">{{ pageView ? pageView : 0 }}</span>
                       <h3>总浏览量(PV)</h3>
                     </div>
                   </Card>
@@ -28,7 +28,7 @@
                   <div class="hrBox"></div>
                   <Card style="width:100%;height: 100%" :shadow="true">
                     <div style="text-align:center">
-                      <span style="font-size: 50px;color: #666666;">{{ uniqueVisitor ? uniqueVisitor : 0 }}</span>
+                      <span style="font-size: 30px;color: #333333;">{{ uniqueVisitor ? uniqueVisitor : 0 }}</span>
                       <h3>总浏览人数(UV)</h3>
                     </div>
                   </Card>
@@ -39,7 +39,7 @@
                   <div class="hrBox"></div>
                   <Card style="width:100%;height: 100%" :shadow="true">
                     <div style="text-align:center">
-                      <span style="font-size: 50px;color: #666666;">{{ sharerAmount ? sharerAmount : 0 }}</span>
+                      <span style="font-size: 30px;color: #333333;">{{ sharerAmount ? sharerAmount : 0 }}</span>
                       <h3>
                         总分享人数
                         <Tooltip
@@ -60,7 +60,7 @@
                   <div class="hrBox"></div>
                   <Card style="width:100%;height: 100%" :shadow="true">
                     <div style="text-align:center">
-                      <span style="font-size: 50px;color: #666666;">{{ smsSendAmount ? smsSendAmount : 0 }}</span>
+                      <span style="font-size: 30px;color: #333333;">{{ smsSendAmount ? smsSendAmount : 0 }}</span>
                       <h3>短信触达人数</h3>
                     </div>
                   </Card>
@@ -68,7 +68,7 @@
               </Col>
             </Row>
             <div class="rightEcharts">
-              <common-echart :option="lineOption" height="565px"></common-echart>
+              <common-echart :option="lineOption" height="540px"></common-echart>
             </div>
           </div>
         </Col>
@@ -78,12 +78,12 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
-import { postExample, getExample } from "@/api/example/index";
-import { getNowDate, toFixedNumber } from '@/utils'
+import { getNowDate, toFixedNumber, timestampToDate } from '@/utils'
 //import echarts from 'echarts'
 import commonEchart from "@/components/echarts/commonechart";
 import dateTime from "@/components/datePicker/dateTime";
 import { getBaseDateTotal, getBaseDate } from '@/api/example'
+import { deepClone } from '@/utils'
 export default {
   name: "baseData",
   components: {
@@ -136,7 +136,7 @@ export default {
           },
           axisLine: {
             lineStyle: {
-              color: '#008acd' //坐标轴线颜色
+              color: '#000000' //坐标轴线颜色
             }
           },
           boundaryGap: false,
@@ -149,7 +149,7 @@ export default {
           },
           axisLine: {
             lineStyle: {
-              color: '#008acd' //坐标轴线颜色
+              //color: '#008acd' //坐标轴线颜色
             }
           }
         }],
@@ -159,7 +159,7 @@ export default {
           y: "20%",
           y2: "12%",
         },
-        color: ['#52b4ff', '#fa7de5', '#48dff0', '#ff7370', '#5ce5aa', '#ffb870', '#bc84f5', '#fae164', '#778eff', '#ff7faa'],
+        color: ['#f19247', '#e162b0', '#34a3db', '#67e1e4'],
         series: [
           {
             name: "浏览量（PV）",
@@ -285,7 +285,7 @@ export default {
             "color": "#000"
           },
           // "data":  ['浏览量', '参与量', '中奖量', '领奖量', '核销量', '分享量'],
-          "data":  [],
+          "data":  ['浏览量', '参与量', '中奖量', '领奖量', '分享量'],
         },
         grid: {
           "top": 24,
@@ -296,7 +296,7 @@ export default {
           "borderWidth": 0.5
         },
         // 金字塔块的颜色
-        color: ['#aeaeae', '#949494', '#6b6b6b', '#434343', '#282828', '#000000'],
+        color: ['#f19247', '#e162b0', '#34a3db', '#23dbdf', '#f7c700'],
         series: [
           {
             x: '-40%',
@@ -305,32 +305,29 @@ export default {
             //left: '10%',
             width: '80%',
             gap: 10,
-            minSize: 114,
-            maxSize: 390,
+            sort: "none",
+            minSize: 150,
+            maxSize: 500,
             label: {
               normal: {
                 position: 'right',
-                formatter: '{b}\n\n{c}%',
+                formatter: function (params) {
+                  return (params.data.name + '\n\n' + params.data.percentageDate + '%');
+                },
                 fontSize: 16,
                 color: '#2f2f2f',
               },
-
             },
             labelLine: {
               normal: {
                 show: true,      // 是否显示引导线
-                length:	270,		// 视觉引导线第一段的长度。
+                length:	200,		// 视觉引导线第一段的长度。
                 lineStyle: {
                   type: 'dotted',
                   width: 1,
                   color: '#aeaeae'
                 }
               },
-            },
-            itemStyle: {
-              normal: {
-
-              }
             },
             data: [],
           },
@@ -339,6 +336,7 @@ export default {
             type: 'funnel',
             gap: 10,
             x: '-80%',
+            sort: "none",
             label: {
               normal: {
                 position: 'inside',
@@ -346,13 +344,6 @@ export default {
                 textStyle: {
                   color: '#fff'
                 }
-              }
-
-            },
-            labelLine: {
-              normal: {
-
-
               }
             },
             itemStyle: {
@@ -383,20 +374,64 @@ export default {
   },
   computed: {
     ...mapGetters([
-      'playMethod'
-    ])
+      'activityStartDate',
+      'businessList',
+      'activityId'
+    ]),
+  },
+  watch: {
+    // businessList(newValue) {
+    //   console.log('businessList----', newValue)
+    //   if(newValue.length > 0) {
+    //     this.getLineList();
+    //     this.getBaseDate();
+    //   }
+    // },
+    businessList: {
+      handler(newValue, oldValue) {
+        console.log('监听基础数据页面的businessList----', newValue)
+        if(newValue.length > 0) {
+          this.getLineList();
+          this.getBaseDate();
+        }
+      },
+      deep: true, //深度监听
+      immediate: true
+    },
+    activityStartDate: {
+      handler(newValue, oldValue) {
+        console.log('监听活动开始时间--newValue', newValue);
+        this.searchDate.startDate = timestampToDate(new Date(newValue).getTime());
+        this.defaultDate[0] = this.searchDate.startDate;
+      },
+      deep: true, //深度监听
+      immediate: true
+    },
+    // activityId: {
+    //   handler(newValue, oldValue) {
+    //     console.log('监听活动ID', newValue)
+    //     if(newValue) {
+    //
+    //     }
+    //   },
+    //   deep: true, //深度监听
+    //   immediate: true
+    // },
   },
   created() {
     // 默认时间取活动开始时间，和当前时间
-    this.searchDate.startDate = "2019-09-25";
+    console.log('this.$store.getters.activityStartDate', this.activityStartDate)
+    console.log('活动ID', this.$store.getters.activityId)
+    //this.searchDate.startDate = timestampToDate(new Date(this.activityStartDate).getTime());
     //this.searchDate.endDate = this.getNowDate();
     this.defaultDate[0] = this.searchDate.startDate;
     this.defaultDate[1] = this.searchDate.endDate;
-    this.getLineList();
-    this.getBaseDate();
+    // this.getLineList();
+    // this.getBaseDate();
   },
   mounted() {
-
+    //console.log('mounted周期时间', this.activityStartDate)
+     console.log("获取打印父组件事件方法名",this.$listeners);
   },
   methods: {
     //获取基础数据
@@ -404,10 +439,8 @@ export default {
       let needDataTypeSet = [1, 2, 3, 4, 5, 6, 7, 10];
       this.searchDate.needDataTypeSet = needDataTypeSet;
       let params = {
-        "activityId": 104383,
-        "businessList": [
-          173,199
-        ],
+        "activityId": this.activityId,
+        "businessList": this.businessList,
         "params": this.searchDate,
       }
       getBaseDateTotal(params).then(res => {
@@ -420,48 +453,59 @@ export default {
           this.awardsCount = res.body['6'];//领奖量----6
           this.sharerCount = res.body['7'];//分享量----7
           this.joinCount = res.body['10'];//参与量----10
-          let temp = [{
-            value: this.pageView,
-            name: "浏览量"
-          }, {
-            value: this.prizeCount,
-            name: "中奖量"
-          }, {
-            value: this.awardsCount,
-            name: "领奖量"
-          }, {
-            value: this.sharerCount,
-            name: "分享量"
-          }, {
-            value: this.joinCount,
-            name: "参与量"
-          }];
-          //TODO, 大问题， 漏斗图的两个series[0]data，会自动排序（未解决）,我们这里需要禁止他排序
-          temp.sort(function (a, b) { return a.value - b.value});
-          this.funnelOption.series[0].minSize = temp[0].value + + (temp[temp.length - 1].value * 1);
-          this.funnelOption.series[0].maxSize = temp[temp.length - 1].value + (temp[temp.length - 1].value * 2);
-          console.log(' this.funnelOption.series',  this.funnelOption.series)
+          let temp = [
+            {value: this.pageView, name: '浏览量'},
+            {value: this.joinCount, name: '参与量'},
+            {value: this.prizeCount, name: '中奖量'},
+            {value: this.awardsCount, name: '领奖量'},
+            {value: this.sharerCount, name: '分享量'},
+          ];
           this.funnelOption.series[1].data = temp;
-          temp.sort(function (a, b) { return b.value - a.value}).map((item, index) => this.funnelOption.legend.data.push(item.name))
-          let tempPercentageArr = temp.sort(function (a, b) { return a.value - b.value});//百分比
-          let arr = [];
-          //TODO 文档：百分比计算公式：该层级百分比=该层级数量/上一 层级数量，  那么最顶部的哪个值得百分比如何得来？？
-          for (let i = 0; i < tempPercentageArr.length; i++) {
-            if (i === ((tempPercentageArr.length) - 1)) {
-              arr[i] = {
-                value: 100,
-                name: tempPercentageArr[i].name
-              };
-            } else {
-              arr[i] = {
-                value: isNaN(tempPercentageArr[i].value / tempPercentageArr[i + 1].value) ? 0 : parseFloat(toFixedNumber((((tempPercentageArr[i].value / tempPercentageArr[i + 1].value) * 10000) / 100), 1)),
-                name: tempPercentageArr[i].name
-              };
+          let tempPercentageArr = deepClone(temp);//百分比
+          let arr = [
+            { value: 100, name: '浏览量', percentageDate: 100 },
+            { value: 100, name: '参与量', percentageDate: 58 },
+            { value: 58, name: '中奖量', percentageDate: 4 },
+            { value: 12, name: '领奖量', percentageDate: 100 },
+            { value: 4, name: '分享量', percentageDate: 12 },
+          ];
+          // for (let i = 0; i < tempPercentageArr.length; i++) {
+          //   if (i === ((tempPercentageArr.length) - 1)) {
+          //     arr[i] = {
+          //       value: 100,
+          //       name: tempPercentageArr[i].name
+          //     };
+          //   } else {
+          //     arr[i] = {
+          //       value: isNaN(tempPercentageArr[i].value / tempPercentageArr[i + 1].value) ? 0 : parseFloat(toFixedNumber((((tempPercentageArr[i].value / tempPercentageArr[i + 1].value) * 10000) / 100), 1)),
+          //       name: tempPercentageArr[i].name
+          //     };
+          //   }
+          //   console.log('arr', arr);
+          // }
+          // 先计算出百分比
+          for(let i = 0; i < tempPercentageArr.length; i ++) {
+            if(i === 0) {
+              tempPercentageArr[i].percentageDate = 100;
             }
-            console.log('arr', arr);
+            if (i > 0) {
+              tempPercentageArr[i].percentageDate = isNaN(tempPercentageArr[i].value / tempPercentageArr[i-1].value) || ((tempPercentageArr[i].value / tempPercentageArr[i-1].value) === Infinity) ? 0 : (parseFloat(toFixedNumber((((tempPercentageArr[i].value / tempPercentageArr[i-1].value) * 10000) / 100), 2)))
+            }
+            if(i === (tempPercentageArr.length - 1)) {
+              tempPercentageArr[i].percentageDate = isNaN(tempPercentageArr[i].value / tempPercentageArr[0].value) || ((tempPercentageArr[i].value / tempPercentageArr[i-1].value) === Infinity) ? 0 : (parseFloat(toFixedNumber((((tempPercentageArr[i].value / tempPercentageArr[0].value) * 10000) / 100), 2)))
+            }
           }
-          this.funnelOption.series[0].data = arr;
-          console.log('temp', this.funnelOption.series[0].data)
+          //console.log('计算百分比后--tempPercentageArr', tempPercentageArr)
+          //然后把百分比排序(从大到小排序)，赋值给value
+          let sortPercentageArr = [];//排序后的百分比
+          tempPercentageArr.map(item => sortPercentageArr.push(item.percentageDate));
+          sortPercentageArr.sort(function (a, b) { return b - a});
+          //console.log('排序后的百分比---sortPercentageArr', sortPercentageArr);
+          sortPercentageArr.map((item, index) => tempPercentageArr[index].value = item);
+          //console.log('最后最后的tempPercentageArr', tempPercentageArr)
+          this.funnelOption.series[0].data = tempPercentageArr;
+          //console.log('this.funnelOption.series[0].data', this.funnelOption.series[0].data)
+          //console.log('this.funnelOption.series[1].data', this.funnelOption.series[1].data)
         }
       }).catch((errorRes) => {
 
@@ -470,10 +514,8 @@ export default {
     // 获取折线图数据
     getLineList() {
       let params = {
-        "activityId": 104383,
-        "businessList": [
-          173,199
-        ],
+        "activityId": this.activityId,
+        "businessList": this.businessList,
         "params": this.searchDate
       }
       getBaseDate(params).then(res => {
@@ -495,9 +537,12 @@ export default {
       })
     },
     searchConfirm(v) {
-      console.log('vvvv', v)
-      this.searchDate.startDate = v.startDate;
-      this.searchDate.endDate = v.endDate;
+      if (v.startDate) {
+        this.searchDate.startDate = v.startDate;
+      }
+      if (v.endDate) {
+        this.searchDate.endDate = v.endDate;
+      }
       this.getLineList();
       this.getBaseDate();
     },
@@ -511,7 +556,7 @@ export default {
 </script>
 <style scoped>
   .echartsBox > /deep/ .ivu-row {
-    margin-right: -32px!important;
+    /*margin-right: -32px!important;*/
   }
 </style>
 <style lang="less" scoped>
@@ -528,11 +573,12 @@ export default {
     box-shadow: 5px 6px 5px 0px rgba(12, 1, 4, 0.4);
   }
   .rightBox {
-    padding: 0 15px;
+    /*padding: 0 15px;*/
     /*background-color: #fff;*/
     /*box-shadow: 5px 6px 5px 0px rgba(12, 1, 4, 0.4);*/
     .topBox {
-      height: 195px;
+      /*height: 195px;*/
+      height: 122px;
       position: relative;
       /deep/ .ivu-card-shadow {
         box-shadow: 5px 6px 5px 0px rgba(12, 1, 4, 0.4);
@@ -545,25 +591,29 @@ export default {
         }
       }
       .hrBox {
-        background-color: rgb(153, 153, 153);
-        height: 2px;
+        background-color: #E5E5E5;
+        height: 1px;
         position: absolute;
-        top: 115px;
+        /*top: 115px;*/
+        top: 61px;
         z-index: 99;
         left: 50%;
         transform: translateX(-50%);
         width: 90%;
       }
       h3 {
-        font-size: 22px;
-        margin-top: 35px;
+        /*font-size: 22px;*/
+        /*margin-top: 35px;*/
+        font-size: 24px;
+        margin-top: 15px;
+        color: #333333;
         white-space: nowrap;
       }
       /*padding: 15px;*/
       /*background-color: #fff;*/
     }
     .rightEcharts {
-      margin-top: 25px;
+      margin-top: 8px;
       padding: 15px;
       background-color: #fff;
       box-shadow: 5px 6px 5px 0px rgba(12, 1, 4, 0.4);

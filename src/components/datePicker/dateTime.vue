@@ -5,9 +5,18 @@
   </div>
 </template>
 <script>
+  import { mapGetters } from "vuex";
+  import { timestampToDate, getNowDate } from '@/utils'
   export default {
     name: "DataPicker",
-    props: ["defaultDate"],
+    //props: ["defaultDate"],
+    // props: {
+    //   defaultDate: {
+    //     type: Array,
+    //     required: true,
+    //     default: []
+    //   }
+    // },
     data() {
       return {
         startDate: null,//开始时间
@@ -18,8 +27,8 @@
               text: '至今',
               value() {
                 const end = new Date();
-                const start = new Date();
-                start.setTime(new Date(start.getTime() - 3600 * 1000 * 24 * 15).setHours(0, 0, 0, 0));
+                const start = new Date('2019-10-01 00:00:00');//此处用的是活动开始时间
+                start.setTime(new Date(start.getTime()).setHours(0, 0, 0, 0));
                 end.setTime(new Date(end.getTime() - 3600 * 1000 * 24 * 0).setHours(23, 59, 59, 999));
                 return [start, end];
               }
@@ -64,12 +73,43 @@
             }
           ]
         },
-        //defaultDate: ["", ""],
+        defaultDate: [],
       }
     },
+    computed: {
+      ...mapGetters([
+        'activityStartDate',
+      ]),
+    },
+    watch: {
+      activityStartDate: {
+        handler(newValue, oldValue) {
+          this.defaultDate = [];
+          this.defaultDate[0] = timestampToDate(new Date(newValue).getTime());
+          this.defaultDate[1] = getNowDate();
+          const temp2 = newValue;
+          // const temp2 = '2019-09-13 00:00:00';
+          this.options2.shortcuts[0] = {
+            text: '至今',
+            value() {
+              const end = new Date();
+              const start = new Date(newValue);//此处用的是活动开始时间
+              start.setTime(new Date(start.getTime()).setHours(0, 0, 0, 0));
+              end.setTime(new Date(end.getTime() - 3600 * 1000 * 24 * 0).setHours(23, 59, 59, 999));
+              return [start, end];
+            }
+          }
+        },
+        deep: true, //深度监听
+        immediate: true
+      },
+    },
     created() {
-      // this.defaultDate[0] = "2019-09-22";
-      // this.defaultDate[1] = "2019-09-27";
+      this.startDate = this.defaultDate[0];
+      this.endDate = this.defaultDate[1];
+    },
+    mounted() {
+        // console.log("获取DatePicker组件",this.$listeners);
     },
     methods: {
       dateTimeChange(v) {

@@ -46,7 +46,7 @@ export default new Router({
           component: () => import('@/view/marketingData'),
           meta: { title: '营销数据' },
           name: 'marketingData'
-        },
+        }
       ]
     }
   ]

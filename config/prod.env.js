@@ -2,5 +2,5 @@
 module.exports = {
   NODE_ENV: '"production"',
   ENV_CONFIG: '"prod"',
-  BASE_API: '"线上环境请求地址"',//线上环境
+  BASE_API: '"http://192.168.2.158:11068"',//线上环境
 }

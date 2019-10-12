@@ -87,3 +87,21 @@ export function postmarkeingSpread(query){
       params: query
     });
  }
+//=================这里是传播分析的接口================
+
+// 查询活动列表
+export function listActivityHierarchy(query) {
+  return request({
+    url: '/activity/listActivityHierarchy',
+    method: 'post',
+    data: query
+  })
+}
+// 查询活动下发商户列表
+export function listBusiness(query) {
+  return request({
+    url: '/activity/listBusiness',
+    method: 'post',
+    data: query
+  })
+}

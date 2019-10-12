@@ -16,7 +16,7 @@ body {
 }
 .contentBox {
   /* height: calc(100vh - 52px); */
-  padding: 10px 80px;
+  padding: 10px 270px;
 }
 #app {
   /* font-family: 'Avenir', Helvetica, Arial, sans-serif; */

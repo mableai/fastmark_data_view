@@ -12,6 +12,7 @@
     :value-format="format"
     placeholder="请选择用户"
     @input="handleInput"
+    @select="handleSelect"
     :normalizer="normalizer"
     :disable-branch-nodes="false"
     :flat="true"    
@@ -21,7 +22,7 @@
 <script>
   import Treeselect from "@riophae/vue-treeselect"
   import "@riophae/vue-treeselect/dist/vue-treeselect.css"
-  import { getExample } from "@/api/example/index"
+  import { listBusiness } from "@/api/example/index"
   export default {
     name: "UserSelect",
     components: { Treeselect },
@@ -42,30 +43,14 @@
       autoload: {
         required: false,
         type: Boolean,
-        default: true
+        default: false
       }
     },
     data() {
       return {
-        orgusers: [ {
-          id: 'a',
-          label: 'a',
-          children: [ {
-            id: 'aa',
-            label: 'aa',
-          }, {
-            id: 'ab',
-            label: 'ab',
-          } ],
-        }, {
-          id: 'b',
-          label: 'b',
-        }, {
-          id: 'c',
-          label: 'c',
-        } ],
+        orgusers: null,
         normalizer(node) {
-          //console.log('normalizer:',node)
+          console.log('normalizer:',node)
           node.label = node.label || node.name
           return node
         }
@@ -73,6 +58,7 @@
     },
     methods: {
       handleInput(value, instanceId) {
+        console.log('handleInput', value)
         var node = value
         if (node.oid) {
           var str = JSON.stringify(value)
@@ -87,6 +73,7 @@
       handleDeselect(node, instanceId) {
       },
       handleSelect(node2, instanceId) {
+        console.log('node2', node2)
         var str = JSON.stringify(node2)
         var node = JSON.parse(str)
         node.id = node.oid //还原用户id
@@ -109,49 +96,68 @@
         if (action !== "LOAD_ROOT_OPTIONS") {
           pid = parentNode.oid
         }
-        getExample({ "id": pid }).then(response => {
-          console.log("response:::", response)
-          // const data = response.data
-          // var olist = data.offices
-          // var ulist = data.users
-          // if (olist.length === 0) {
-          //   if (pid) parentNode.children = []
-          //   //组织机构禁用
-          //   parentNode.isDisabled = true
-          //   callback()
-          //   return
-          // }
-          // //子部门
-          // var orgs = []
-          // for (var i in olist) {
-          //   orgs.push({
-          //     id: "o" + olist[i].id,
-          //     oid: olist[i].id,
-          //     name: olist[i].name,
-          //     label: olist[i].name,
-          //     children: null
-          //   })
-          // }
-          // //部门用户
-          // for (var j in ulist) {
-          //   orgs.push({
-          //     id: "u" + ulist[j].id,
-          //     oid: ulist[j].id,
-          //     name: ulist[j].name,
-          //     label: ulist[j].name,
-          //     children: undefined
-          //   })
-          // }
-          // if (pid) {
-          //   parentNode.children = orgs
-          // } else {
-          //   self.orgusers = orgs
-          // }
-          callback()
-        }).catch(error => {
-          console.log(error)
-          callback()
-        })
+        if (this.$store.getters.activityId) {
+          listBusiness({ "activityId": this.$store.getters.activityId }).then(response => {
+            console.log("response:::", response)
+            //   const data = response.data
+            //   var olist = data.offices
+            //   var ulist = data.users
+            //   if (olist.length === 0) {
+            //     if (pid) parentNode.children = []
+            //     //组织机构禁用
+            //     parentNode.isDisabled = true
+            //     callback()
+            //     return
+            //   }
+            //   //子部门
+            //   var orgs = []
+            //   for (var i in olist) {
+            //     orgs.push({
+            //       id: "o" + olist[i].id,
+            //       oid: olist[i].id,
+            //       name: olist[i].name,
+            //       label: olist[i].name,
+            //       children: null
+            //     })
+            //   }
+            //   //部门用户
+            //   for (var j in ulist) {
+            //     orgs.push({
+            //       id: "u" + ulist[j].id,
+            //       oid: ulist[j].id,
+            //       name: ulist[j].name,
+            //       label: ulist[j].name,
+            //       children: undefined
+            //     })
+            //   }
+            //   if (pid) {
+            //     parentNode.children = orgs
+            //   } else {
+            //     self.orgusers = orgs
+            //   }
+            //   callback()
+            if (response) {
+              // this.orgusers = response.body;
+              this.orgusers = [ {
+                id: 'a',
+                label: 'a',
+                children: undefined,
+              }, {
+                id: 'b',
+                label: 'b',
+              }, {
+                id: 'c',
+                label: 'c',
+              } ];
+              callback()
+            }
+          }).catch(error => {
+            console.log(error)
+            callback()
+          })
+        } else {
+          this.$Message.warning("请先选择活动")
+        }
       }
     }
   }

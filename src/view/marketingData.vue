@@ -1,7 +1,8 @@
 <template>
   <div class="contentBox">
-    <!-- <header class="header">
-      <Form class="form" :model="formItem">
+    <!-- <header class="header"> -->
+      <date-time @search="searchConfirm" :defaultDate="defaultDate"></date-time>
+      <!-- <Form class="form" :model="formItem">
         <Row>
           <Col span="3">
             <FormItem class="formItem">
@@ -10,30 +11,29 @@
               </Select>
             </FormItem>
           </Col>
-          <Col span="11">
+          <Col span="12">
             <FormItem class="formItem" label="发送时间：">
               <Row>
-                <Col span="7">
+                <Col span="9">
                   <FormItem prop="datetime">
-                    <DatePicker type="datetime" placeholder="选择开始时间" @on-change="onStartTime" v-model="formItem.time.startTime"></DatePicker>
+                    <DatePicker type="datetime" placeholder="选择开始时间" v-model="formItem.time.startTime"></DatePicker>
                   </FormItem>
                 </Col>
-                <Col span="1" style="text-align: center">-</Col>
-                <Col span="7">
+                <Col span="2" style="text-align: center">-</Col>
+                <Col span="9">
                   <FormItem prop="datetime">
-                    <DatePicker type="datetime" placeholder="选择结束时间" @on-change="onEndTime" v-model="formItem.time.endTime"></DatePicker>
+                    <DatePicker type="datetime" placeholder="选择结束时间" v-model="formItem.time.endTime"></DatePicker>
                   </FormItem>
                 </Col>
               </Row>
             </FormItem>
           </Col>
-          <Col span="2" >
-            <Button type="primary" @click="searchBtn" >查询</Button>
+          <Col span="9" style="text-align:right;">
+            <Button type="primary">查询</Button>
           </Col>
         </Row>
-      </Form>
-    </header> -->
-    <date-time @search="searchConfirm" :defaultDate="defaultDate"></date-time>
+      </Form> -->
+    <!-- </header> -->
     <div class="content">
       <Row>
         <Col span="10">
@@ -50,33 +50,32 @@
           </div>
         </Col>
       </Row>
-      <Table class="marketing-table" border :columns="tableHeader" :data="historyData"></Table>
-      <Page class="paging" :total=total :pageSize=pageSize @on-change="changepage" show-elevator show-sizer show-total />
+      <Table class="marketing-table" border :columns="tableHeader" :data="tableData"></Table>
+      <Page class="paging" :total="formItem.totalSize" :current="formItem.pageIndex" :pageSize="formItem.pageSize" @on-change="changePageIndex" @on-page-size-change="changePageSize" show-elevator show-sizer show-total />
     </div>
   </div>
 </template>
 <script>
 import echarts from "echarts";
+import {mapGetters} from "vuex";
+import { timestampToDate } from '@/utils'
 import commonEchart from "@/components/echarts/commonechart";
 import "../../node_modules/echarts/map/js/china.js";
 import "../../node_modules/echarts/theme/macarons.js";
-import { postmarkeingToal, postmarkeingSpread, gettmarkeingsmsrecord} from '@/api/example';
-import { getNowDate, toFixedNumber } from '@/utils';
+import { postmarkeingToal, postmarkeingSpread, getSMSRecord} from '@/api/example/table'
 import dateTime from "@/components/datePicker/dateTime";
 export default {
   name: "marketingData",
   components: {
     commonEchart,
-     dateTime  
+    dateTime
   },
   data() {
     return {
-  
-      defaultDate:[],
       formItem: {
         time: {
-          startTime: "",
-          endTime: ""
+          startTime: "2019-09-25 00:00:00",
+          endTime: this.getNowDate()
         },
         timeQuantum: "至今",
         timeQuantumList: [
@@ -92,11 +91,13 @@ export default {
             value: "昨天",
             label: "昨天"
           }
-        ]
+        ],
+        pageIndex: 1,
+        pageSize: 10,
+        totalSize: 100
       },
       tableHeader: [
         {
-          title:"序号",
           type: 'index',
           width: 60,
           align: 'center'
@@ -108,7 +109,23 @@ export default {
         },
         {
           title: '短信内容',
-          key: 'message'
+          key: 'message',
+          render: (h, params) => {
+            return h('div', [
+              h('span', {
+                  style: {
+                    display: 'inline-block',
+                    width: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  },
+                  domProps: {
+                    title: params.row.message
+                  }
+              }, params.row.message)
+            ]);
+          }
         },
         {
           title: '短信长度',
@@ -141,118 +158,104 @@ export default {
           width: 90
         }
       ],
-      historyData:[],
       tableData: [
-        {
-          phone: "A",
-          message: "阿东方大道",
-          smsLength: 5,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '成功',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        },
-        {
-          phone: "15212345678",
-          message: "恩爱的发个",
-          smsLength: 8,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '失败',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '否',
-        },
-        {
-          phone:"B",
-          message: "较高的方便的",
-          smsLength: 2,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '成功',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        },
-        {
-          phone:"C",
-          message: "如何把刚恢复到",
-          smsLength: 18,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '失败',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        },
-        {
-          phone:"D",
-          message: "如何把刚恢复到",
-          smsLength: 18,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '失败',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        },
-        {
-          phone:"E",
-          message: "如何把刚恢复到",
-          smsLength: 18,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '失败',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        },
-        {
-          phone:"F",
-          message: "如何把刚恢复到",
-          smsLength: 18,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '失败',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        },
-        {
-          phone:"G",
-          message: "如何把刚恢复到",
-          smsLength: 18,
-          subsection: 1,
-          submitTime: "2019.09.26 19:00:01",
-          state: '失败',
-          sendTime: "2019-09-26 15:58:41",
-          isClick: '是',
-        }
+        // {
+        //   phone: "13012345678",
+        //   message: "阿东方大道",
+        //   smsLength: 5,
+        //   subsection: 1,
+        //   submitTime: "2019.09.26 19:00:01",
+        //   state: '成功',
+        //   sendTime: "2019-09-26 15:58:41",
+        //   isClick: '是',
+        // },
+        // {
+        //   phone: "15212345678",
+        //   message: "恩爱的发个",
+        //   smsLength: 8,
+        //   subsection: 1,
+        //   submitTime: "2019.09.26 19:00:01",
+        //   state: '失败',
+        //   sendTime: "2019-09-26 15:58:41",
+        //   isClick: '否',
+        // },
+        // {
+        //   phone:"18812345678",
+        //   message: "较高的方便的",
+        //   smsLength: 2,
+        //   subsection: 1,
+        //   submitTime: "2019.09.26 19:00:01",
+        //   state: '成功',
+        //   sendTime: "2019-09-26 15:58:41",
+        //   isClick: '是',
+        // },
+        // {
+        //   phone:"15912345678",
+        //   message: "如何把刚恢复到",
+        //   smsLength: 18,
+        //   subsection: 1,
+        //   submitTime: "2019.09.26 19:00:01",
+        //   state: '失败',
+        //   sendTime: "2019-09-26 15:58:41",
+        //   isClick: '是',
+        // }
       ],
-      ajaxHistoryData:[],
-      total:0,
-      pageSize:2,
       myChart: null,
       funnelOption: {},
       options: {},
-       linkSendAmount:'',//链接点击量
+      linkSendAmount:'',//链接点击量
       smsSuccessAmount:'',//短信触达量
       smsSendAmount: '',//短信发送量
       searchDate: {
         "startDate": "",
-        "endDate":getNowDate()
+        "endDate": this.getNowDate()
       },
+      defaultDate: []
     }
   },
+  computed: {
+    ...mapGetters([
+      'activityStartDate',
+      'businessList',
+      'activityId'
+    ]),
+  },
+  watch: {
+    activityStartDate: {
+      handler(newValue, oldValue) {
+        //console.log('监听营销---活动开始时间--newValue', newValue);
+        this.searchDate.startDate = timestampToDate(new Date(newValue).getTime());
+        this.defaultDate[0] = this.searchDate.startDate;
+      },
+      deep: true, //深度监听
+      immediate: true
+    },
+    businessList: {
+      handler(newValue, oldValue) {
+        //console.log('监听营销数据页面的businessList----', newValue)
+        if(newValue.length > 0) {
+          this.getMarkeingDate();
+          this.getSMSSendRecord();
+        }
+      },
+      deep: true, //深度监听
+      immediate: true
+    },
+  },
   created() {
-         // 默认时间取活动开始时间，和当前时间
-    this.searchDate.startDate = "2019-09-25";
-     this.defaultDate[0] = this.searchDate.startDate;
+    // 默认时间取活动开始时间，和当前时间
+    //this.searchDate.startDate = "2019-09-25";
+    this.defaultDate[0] = this.searchDate.startDate;
     this.defaultDate[1] = this.searchDate.endDate;
-    this.handleListApproveHistory();
   },
   mounted(){
     this.$nextTick(()=>{
-      this.smsDataFunnel();
+      //this.smsDataFunnel();
       this.optionData();
-        this.getMarkeingDate();
+      // this.getMarkeingDate();
+      // this.getSMSSendRecord();
     })
-    console.log(echarts);
+    //console.log(echarts);
   },
   methods:{
     randomData() {
@@ -269,13 +272,13 @@ export default {
           left: "15"
         },
         tooltip: {
-            trigger: "item",
+          trigger: "item",
           // formatter: "{a} <br/>{b}: {c} ({d}%)";
           formatter:(params=>{
-            console.log("省份tooltip",params);
-               console.log("省份value",params.value);
+            // console.log("省份tooltip",params);
+            //    console.log("省份value",params.value);
                 if(params.value == 'NaN'){
-                   console.log(params.value == 'NaN');
+                   //console.log(params.value == 'NaN');
                    params.value = "0"
                 }
 
@@ -362,264 +365,269 @@ export default {
       }
     },
     smsDataFunnel() {
-      this.funnelOption = {
-        title: {					// 图表标题
-          text: '短信数据漏斗',					// 标题文本内容
-          left: '0%',						// 标题距容器左侧5%
-          top: '0%',						// 标题距容器顶部5%
-          textStyle: {					// 标题文本样式
-            color: '#666666',					// 字体颜色
-            fontSize: 22,					// 字体大小
-          }
-        },
-        tooltip: {
-          "trigger": "axis",
-          "axisPointer": {
-            "type": "cross",
-            "label": {
-              "backgroundColor": "#6a7985"
-            },
-            "lineStyle": {
-              "color": "#9eb2cb"
-            }
-          }
-        },
 
-        legend: {
-          "top": "bottom",
-          "left": "00%",
-          "textStyle": {
-            "color": "#000"
-          },
-          "data":  ['短信发送量', '短信触达量', '链接点击量'],
-        },
-        grid: {
-          "top": 24,
-          "left": "2%",
-          "right": 20,
-          "bottom": 30,
-          "containLabel": true,
-          "borderWidth": 0.5
-        },
-        // 金字塔块的颜色
-        color: ['#aeaeae', '#949494', '#6b6b6b'],
-        series: [
-          {
-            x: '-40%',
-            name: '',
-            type: 'funnel',
-            //left: '10%',
-            width: '80%',
-            gap: 10,
-            minSize: 100,
-            maxSize: 500,
-            label: {
-              normal: {
-                position: 'right',
-                formatter: '{b}\n\n{c}%',
-                fontSize: 16,
-                color: '#2f2f2f',
-              },
+        // this.funnelOption = {
+        //   title: {					// 图表标题
+        //     text: '短信数据漏斗',					// 标题文本内容
+        //     left: '0%',						// 标题距容器左侧5%
+        //     top: '0%',						// 标题距容器顶部5%
+        //     textStyle: {					// 标题文本样式
+        //       color: '#666666',					// 字体颜色
+        //       fontSize: 22,					// 字体大小
+        //     }
+        //   },
+        //   tooltip: {
+        //     "trigger": "axis",
+        //     "axisPointer": {
+        //       "type": "cross",
+        //       "label": {
+        //         "backgroundColor": "#6a7985"
+        //       },
+        //       "lineStyle": {
+        //         "color": "#9eb2cb"
+        //       }
+        //     }
+        //   },
 
-            },
-            labelLine: {
-              normal: {
-                show: true,      // 是否显示引导线
-                length:	120,		// 视觉引导线第一段的长度。
-                lineStyle: {
-                  type: 'dotted',
-                  width: 1,
-                  color: '#aeaeae'
-                }
-              },
-            },
-            itemStyle: {
-              normal: {
+        //   legend: {
+        //     "top": "bottom",
+        //     "left": "00%",
+        //     "textStyle": {
+        //       "color": "#000"
+        //     },
+        //     "data":  ['短信发送量', '短信触达量', '链接点击量'],
+        //   },
+        //   grid: {
+        //     "top": 24,
+        //     "left": "2%",
+        //     "right": 20,
+        //     "bottom": 30,
+        //     "containLabel": true,
+        //     "borderWidth": 0.5
+        //   },
+        //   // 金字塔块的颜色
+        //   // color: ['#aeaeae', '#949494', '#6b6b6b'],
+        //   series: [
+        //     {
+        //       x: '-40%',
+        //       name: '',
+        //       type: 'funnel',
+        //       //left: '10%',
+        //       width: '80%',
+        //       gap: 10,
+        //       minSize: 100,
+        //       maxSize: 500,
+        //       label: {
+        //         normal: {
+        //           position: 'right',
+        //           formatter: '{b}\n\n{c}%',
+        //           fontSize: 16,
+        //           color: '#2f2f2f',
+        //         },
+        //       },
+        //       labelLine: {
+        //         normal: {
+        //           show: true,      // 是否显示引导线
+        //           length:	120,		// 视觉引导线第一段的长度。
+        //           lineStyle: {
+        //             type: 'dotted',
+        //             width: 1,
+        //             color: '#aeaeae'
+        //           }
+        //         },
+        //       },
+        //       itemStyle: {
+        //         normal: {
 
-              }
-            },
-            data: [
-              {value: 10, name: '短信发送量'},
-              {value: 20, name: '短信触达量'},
-              {value: 30, name: '链接点击量'}
-            ].sort(function (a, b) { return a.value - b.value}),
-          },
-          {
-            name: '',
-            type: 'funnel',
-            gap: 10,
-            x: '-72%',
-            label: {
-              normal: {
-                position: 'inside',
-                formatter: '{c}',
-                textStyle: {
-                  color: '#fff'
-                }
-              }
+        //         }
+        //       },
+        //       data: [
+        //         {value: 30, name: '短信发送量'},
+        //         {value: 20, name: '短信触达量'},
+        //         {value: 10, name: '链接点击量'}
+        //       ].sort(function (a, b) { return a.value - b.value}),
+        //     },
+        //     {
+        //       name: '',
+        //       type: 'funnel',
+        //       gap: 10,
+        //       x: '-72%',
+        //       label: {
+        //         normal: {
+        //           position: 'inside',
+        //           formatter: '{c}',
+        //           textStyle: {
+        //             color: '#fff'
+        //           }
+        //         }
 
-            },
-            labelLine: {
-              normal: {
+        //       },
+        //       labelLine: {
+        //         normal: {
 
 
-              }
-            },
-            itemStyle: {
-              normal: {
-                color: 'transparent',
-                borderWidth:0,
-                opacity: 0
-              }
-            },
-            data: [
-              {value: 1200, name: '短信发送量'},
-              {value: 400, name: '短信触达量'},
-              {value: 200, name: '链接点击量'}
-            ].sort(function (a, b) { return a.value - b.value}),
-          }
-        ]
-      }
+        //         }
+        //       },
+        //       itemStyle: {
+        //         normal: {
+        //           color: 'transparent',
+        //           borderWidth:0,
+        //           opacity: 0
+        //         }
+        //       },
+        //       data: [
+        //         {value: 1200, name: '短信发送量'},
+        //         {value: 400, name: '短信触达量'},
+        //         {value: 200, name: '链接点击量'}
+        //       ].sort(function (a, b) { return a.value - b.value}),
+        //     }
+        //   ]
+        // }
     },
 
     //需要统计的数据类型(统计数据的类型(1浏览量pv，2浏览人数uv，3分享人数，4、短信触达量，5中奖量，6领奖量，7分享量，8短信发送量，9短信链接点击量，10参与量))
-     getMarkeingDate() {
+    getMarkeingDate() {
       let needDataTypeSet = [4,8,9];
       this.searchDate.needDataTypeSet = needDataTypeSet;
       let params = {
-        "activityId": 104383,
-        "businessList": [
-          173,199
-        ],
+        "activityId": this.activityId,
+        "businessList": this.businessList,
         "params": this.searchDate,
       }
-       console.log(params);
+      //console.log('params',params);
       postmarkeingToal(params).then(res => {
-       console.log('res', res);
-       if (res) {
-
-        this.funnelOption = {
-              title: {					// 图表标题
-                text: '短信数据漏斗',					// 标题文本内容
-                left: '0%',						// 标题距容器左侧5%
-                top: '0%',						// 标题距容器顶部5%
-                textStyle: {					// 标题文本样式
-                  color: '#666666',					// 字体颜色
-                  fontSize: 22,					// 字体大小
-                }
-              },
-              tooltip: {
-                "trigger": "axis",
-                "axisPointer": {
-                  "type": "cross",
-                  "label": {
-                    "backgroundColor": "#6a7985"
-                  },
-                  "lineStyle": {
-                    "color": "#9eb2cb"
+        //console.log('res', res);
+        if (res) {
+          this.funnelOption = {
+                title: {					// 图表标题
+                  text: '短信数据漏斗',					// 标题文本内容
+                  left: '0%',						// 标题距容器左侧5%
+                  top: '0%',						// 标题距容器顶部5%
+                  textStyle: {					// 标题文本样式
+                    color: '#666666',					// 字体颜色
+                    fontSize: 22,					// 字体大小
                   }
-                }
-              },
-
-              legend: {
-                "top": "bottom",
-                "left": "00%",
-                "textStyle": {
-                  "color": "#000"
                 },
-                "data":  ['短信发送量', '短信触达量', '链接点击量'],
-              },
-              grid: {
-                "top": 24,
-                "left": "2%",
-                "right": 20,
-                "bottom": 30,
-                "containLabel": true,
-                "borderWidth": 0.5
-              },
-              // 金字塔块的颜色
-              color: ['#aeaeae', '#949494', '#6b6b6b'],
-              series: [
-                {
-                  x: '-40%',
-                  name: '',
-                  type: 'funnel',
-                  //left: '10%',
-                  width: '80%',
-                  gap: 10,
-                  minSize: 100,
-                  maxSize: 500,
-                  label: {
-                    normal: {
-                      position: 'right',
-                      formatter: '{b}\n\n{c}%',
-                      fontSize: 16,
-                      color: '#2f2f2f',
+                tooltip: {
+                  "trigger": "axis",
+                  "axisPointer": {
+                    "type": "cross",
+                    "label": {
+                      "backgroundColor": "#6a7985"
                     },
+                    "lineStyle": {
+                      "color": "#9eb2cb"
+                    }
+                  }
+                },
 
+                legend: {
+                  "top": "bottom",
+                  "left": "00%",
+                  "textStyle": {
+                    "color": "#000"
                   },
-                  labelLine: {
-                    normal: {
-                      show: true,      // 是否显示引导线
-                      length:	120,		// 视觉引导线第一段的长度。
-                      lineStyle: {
-                        type: 'dotted',
-                        width: 1,
-                        color: '#aeaeae'
+                  "data":  ['链接点击量', '短信发送量', '短信触达量'],
+                },
+                grid: {
+                  "top": 24,
+                  "left": "2%",
+                  "right": 20,
+                  "bottom": 30,
+                  "containLabel": true,
+                  "borderWidth": 0.5
+                },
+                // 金字塔块的颜色
+                color: ['#34a3db', '#e162af', '#f29247'],
+                series: [
+                  {
+                    x: '-40%',
+                    name: '',
+                    type: 'funnel',
+                    //left: '10%',
+                    width: '80%',
+                    gap: 10,
+                    minSize: 100,
+                    maxSize: 500,
+                    sort: "none",
+                    label: {
+                      normal: {
+                        position: 'right',
+                        // formatter: '{b}\n\n{c}%',
+                        formatter: function (params) {
+                          let reference = params.data.percentageDate;
+                          let rate;
+                          params.data.percentageDate==0?rate = 0:rate = (params.data.percentageDate*100)/reference
+                          return (params.data.name + '\n\n' + rate + '%');
+                        },
+                        fontSize: 16,
+                        color: '#2f2f2f',
+                      },
+
+                    },
+                    labelLine: {
+                      normal: {
+                        show: true,      // 是否显示引导线
+                        length:	120,		// 视觉引导线第一段的长度。
+                        lineStyle: {
+                          type: 'dotted',
+                          width: 1,
+                          color: '#aeaeae'
+                        }
+                      },
+                    },
+                    itemStyle: {
+                      normal: {
+
                       }
                     },
+                    data: [
+                      {value: 30, name: '短信发送量' ,percentageDate:res.body['8']},
+                      {value: 20, name: '短信触达量' ,percentageDate:res.body['4']},
+                      {value: 10, name: '链接点击量' ,percentageDate:res.body['9']}
+                    ]//.sort(function (a, b) { return a.value - b.value}),
                   },
-                  itemStyle: {
-                    normal: {
-
-                    }
-                  },
-                  data: [
-                    {value:res.body['8'], name: '短信发送量'},
-                    {value: res.body['4'], name: '短信触达量'},
-                    {value:  res.body['9'], name: '链接点击量'}
-                  ].sort(function (a, b) { return a.value - b.value}),
-                },
-                {
-                  name: '',
-                  type: 'funnel',
-                  gap: 10,
-                  x: '-72%',
-                  label: {
-                    normal: {
-                      position: 'inside',
-                      formatter: '{c}',
-                      textStyle: {
-                        color: '#fff'
+                  {
+                    name: '',
+                    type: 'funnel',
+                    gap: 10,
+                    x: '-72%',
+                    sort: "none",
+                    label: {
+                      normal: {
+                        position: 'inside',
+                        formatter: '{c}',
+                        textStyle: {
+                          color: '#fff'
+                        }
                       }
-                    }
 
-                  },
-                  labelLine: {
-                    normal: {
+                    },
+                    labelLine: {
+                      normal: {
 
 
-                    }
-                  },
-                  itemStyle: {
-                    normal: {
-                      color: 'transparent',
-                      borderWidth:0,
-                      opacity: 0
-                    }
-                  },
-                  data: [
-                    {value:res.body['8'], name: '短信发送量'},
-                    {value: res.body['4'], name: '短信触达量'},
-                    {value:  res.body['9'], name: '链接点击量'}
-                  ].sort(function (a, b) { return a.value - b.value}),
-                }
-              ]
-            }
+                      }
+                    },
+                    itemStyle: {
+                      normal: {
+                        color: 'transparent',
+                        borderWidth:0,
+                        opacity: 0
+                      }
+                    },
+                    data: [
+                      {value:res.body['8'], name: '短信发送量'},
+                      {value: res.body['4'], name: '短信触达量'},
+                      {value:  res.body['9'], name: '链接点击量'}
+                    ]//.sort(function (a, b) { return a.value - b.value}),
+                  }
+                ]
+              }
 
-          // linkSendAmount:'',//链接点击量
-         // smsSuccessAmount:'',//短信触达量
-         // smsSendAmount: '',//短信发送量
+            // linkSendAmount:'',//链接点击量
+          // smsSuccessAmount:'',//短信触达量
+          // smsSendAmount: '',//短信发送量
           this.smsSuccessAmount = res.body['4'];//短信触达量
           this.smsSendAmount = res.body['8'];//短信发送量
           this.linkSendAmount = res.body['9'];//链接点击量
@@ -629,98 +637,109 @@ export default {
 
       });
       
-      let paramss = {
-          "activityId": 104246,
-          "businessList": [
-              199,
-              245
-          ],
-          "params": {
-              "startDate": "2017-11-22",
-              "endDate": "2019-09-30"
-          }  
+        let paramss = {
+          "activityId": this.activityId,
+          "businessList": this.businessList,
+          "params": this.searchDate
       };
     
-
+      let maxValue = 10;
       postmarkeingSpread(paramss).then(res => { 
            console.log("短信分布区域",res);
            
              let provinceList = res.body;
                provinceList.map((v,keys) =>{
+
                 //  Object.keys(v)[0] == "name"
                 //    console.log(Object.keys(v)[0]);
                   //  console.log("keys",keys);
                   v.name =  v.province
-                  v.value  =  v.urlClickAmount/v.smsSendSuccessAmount
+                  v.value  =  (v.urlClickAmount/v.smsSendSuccessAmount)=='Infinity'?100:(v.urlClickAmount/v.smsSendSuccessAmount);
+                  //console.log(v.value);
+                  if(v.value>maxValue){
+                    maxValue = v.value
+                  }
+                  
+                  //console.log(v.name,v.value);
+
                   delete  v.urlClickAmount;
                   delete  v.smsSendSuccessAmount;
                   return v;
                })
-                   console.log("新的省份数组",provinceList);
                 // console.log(this.options.series[0].data);
-               this.options.series[0].data =  provinceList
-                
+                this.options.series[0].data =  provinceList;
+                this.options.visualMap.max = maxValue;
                 //  console.log("新的省份数组",provinceList);
-                  // console.log("this.options",this.options);
+                //console.log("this.options",this.options);
       }).catch((errorRes)=>{
 
       })
     },
-    //  postmarkeingToal(params).then(res => {
-     //获取当前日期
-    getNowDate() {
-     
-          var date = new Date();
-          var year = date.getFullYear();
-          var month = date.getMonth() + 1;
-          var day = date.getDate();
-          if (month < 10) {
-            month = "0" + month;
+    getSMSSendRecord() {
+      var thirdBusinessId = this.businessList;
+      let params = {
+        "sendStartDate": this.searchDate.startDate,
+        "sendEndDate": this.searchDate.endDate,
+        "pageNo": this.formItem.pageIndex,
+        "pageSize": this.formItem.pageSize,
+        "thirdBusinessId": thirdBusinessId.toString()
+      }
+      getSMSRecord(params).then(res => {
+        if(res){
+          this.formItem.totalSize = res.body.total;
+          let dataList = res.body.list;
+          this.tableData = [];
+          for(var i in dataList){
+            let dateItem = {
+              phone: dataList[i].phone,
+              message: dataList[i].smsContent,
+              smsLength: dataList[i].smsContent.length,
+              subsection: dataList[i].mCount,
+              submitTime: dataList[i].createTime,
+              state: (dataList[i].submitStatus==0?"成功":"失败"),
+              sendTime: dataList[i].recvTime,
+              isClick: (dataList[i].urlClickCount>0?"是":"否")
+            }
+            this.tableData.push(dateItem);
           }
-          if (day < 10) {
-            day = "0" + day;
-          }
-          var nowDate = year + "-" + month + "-" + day;
-          return year + "-" + month + "-" + day;
-    },
-    //查询短信发送记录
-   searchConfirm(v) {
-      console.log('vvvv', v)
-      this.searchDate.startDate = v.startDate;
-      this.searchDate.endDate = v.endDate;
-      // this.getLineList();
-      // this.getBaseDate();
-        let params = {
-          "sendStartDate":'2019-10-01',
-          "sendEndDate":'2019-10-08',
-          "thirdBusinessId":"123"
         }
-        gettmarkeingsmsrecord(params).then(res=>{
-          
-        }).catch((errorRes)=>{
-            console.log("errorRes",errorRes);
-        })
+      })
     },
-    //
-    handleListApproveHistory(){
-       this.ajaxHistoryData =  this.tableData;
-       this.total = this.tableData.length;
-       if(this.tableData.length < this.pageSize){
-             this.historyData  =  this.ajaxHistoryData;
-       }else{
-         this.historyData =  this.ajaxHistoryData.slice(0,this.pageSize);
-       }
+    changePageIndex(data){
+      this.formItem.pageIndex = data;
+      this.getSMSSendRecord();
     },
-    //分页
-    changepage(index){
-      console.log("第",index + "页");
-      let  _start =  (index -  1)  *  this.pageSize;
-        console.log(_start);
-      let  _end = index  * this.pageSize;
-        this.historyData =  this.ajaxHistoryData.slice(_start,_end)
-          console.log(this.historyData);
+    changePageSize(data){
+      console.log(data)
+      this.formItem.pageSize = data;
+      this.getSMSSendRecord();
+    },
+    //点击查询
+    searchConfirm(v){
+      if (v.startDate) {
+        this.searchDate.startDate = v.startDate;
+      }
+      if (v.endDate) {
+        this.searchDate.endDate = v.endDate;
+      }
+      this.getMarkeingDate();
+      this.getSMSSendRecord();
+    },
+    //获取当前日期
+    getNowDate() {
+      var date = new Date();
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      if (month < 10) {
+        month = "0" + month;
+      }
+      if (day < 10) {
+        day = "0" + day;
+      }
+      var nowDate = year + "-" + month + "-" + day;
+      return year + "-" + month + "-" + day;
     }
-    
   }
 }
 </script>
@@ -749,5 +768,19 @@ export default {
       margin-top: 20px;
       text-align: right;
     }
+  }
+  /deep/ .ivu-table-header th {
+    background: #E1F0FF;
+  }
+  /deep/.ivu-form-item-label{
+    color: #666;
+    font-size: 14px;
+  }
+  /deep/.ivu-page-item-active{
+    background-color: #2D8CF0;
+    color: #FFF;
+  }
+  /deep/.ivu-page-item-active a, .ivu-page-item-active:hover a{
+    color: #FFF;
   }
 </style>

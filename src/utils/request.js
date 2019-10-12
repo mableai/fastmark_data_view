@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Message, Modal } from 'iview'
-//import { getToken } from '@/utils/auth'
+import { getToken } from '@/utils/auth'
 //import store from '../store'
 // 创建axios实例
 const service = axios.create({
@@ -12,15 +12,15 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     let time = new Date().getTime();
-    //config.headers['timeStamp'] = time;
-    // if (getToken()) {
-    //   //store.getters.token
-    //   let token;
-    //   let t = time.toString();
-    //   token = Base64.encode(t.slice(0, 6) + getToken() + t.slice(6, 13));
-    //   // token = Base64.encode(t.slice(0,6) + "7DBB4D3B0F58A015FC71808B078A8579" + t.slice(6,13));
-    //   config.headers['requestId'] = token; // 让每个请求携带自定义token 请根据实际情况自行修改
-    // }
+    config.headers['timeStamp'] = time;
+    if (getToken()) {
+      //store.getters.token
+      let token;
+      let t = time.toString();
+      token = Base64.encode(t.slice(0, 6) + getToken() + t.slice(6, 13));
+      // token = Base64.encode(t.slice(0,6) + "7DBB4D3B0F58A015FC71808B078A8579" + t.slice(6,13));
+      config.headers['requestId'] = token; // 让每个请求携带自定义token 请根据实际情况自行修改
+    }
     return config
   },
   error => {
@@ -42,16 +42,16 @@ service.interceptors.response.use(
     } else if (res.head.code === '22') {
       // Token 过期了;
       Message.error("登录信息过期,请重新登陆");
-      setTimeout(() => {
-        let base = process.env.BASE_API;
-        axios.get(`${base}v1/fastmarkedit/activity/getLogoutInfo`).then((response) => {
-          if (response.data.head.code === '0') {
-            window.location.href = response.data.body.expireTokenUrl
-          }
-        }).catch((error) => {
-          console.log('error=====', error);
-        });
-      }, 1000)
+      // setTimeout(() => {
+      //   let base = process.env.BASE_API;
+      //   axios.get(`${base}v1/fastmarkedit/activity/getLogoutInfo`).then((response) => {
+      //     if (response.data.head.code === '0') {
+      //       window.location.href = response.data.body.expireTokenUrl
+      //     }
+      //   }).catch((error) => {
+      //     console.log('error=====', error);
+      //   });
+      // }, 1000)
     } else {
       Message.error(res.head.message);
     }
